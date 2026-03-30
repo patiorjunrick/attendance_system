@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fill Attendance</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <h2>Fill Attendance for {{ day }}, {{ date }}</h2>
+    <form method="POST">
+        <label>Select Unit:</label>
+        <select name="unit" required>
+            {% for u in units %}
+            <option value="{{ u }}">{{ u }}</option>
+            {% endfor %}
+        </select>
+    
+        <label>Will you attend?</label>
+        <select name="attending" required>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select>
+    
+        <button type="submit">Submit</button>
+    </form>
+    <a href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</div>
+
+
+</body>
+</html>

@@ -1,0 +1,150 @@
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #fff;
+    padding: 30px 40px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0px 0px 20px rgba(0,0,0,0.2);
+    text-align: center;
+
+}
+
+h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+.form-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.show-pass {
+    text-align: left;
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.login-link {
+    margin-top: 12px;
+    font-size: 14px;
+}
+.login-link a {
+    color: #2575fc;
+    text-decoration: none;
+}
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background-color: #2575fc;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 15px;
+}
+
+button:hover {
+    background-color: #6a11cb;
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+a {
+    color: #2575fc;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table, th, td {
+    border: 1px solid #ccc;
+}
+
+th, td {
+    padding: 10px;
+    text-align: left;
+    word-wrap: break-word;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+    text-align: left;
+}
+
+label:after {
+    content: " *";
+    color: red;
+    margin-left: 2px;
+}
+
+
+
+/* Media Queries for smaller devices */
+@media screen and (max-width: 500px) {
+    .container {
+        padding: 20px;
+        margin: 10px;
+    }
+
+    input, select, button {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    table, th, td {
+        font-size: 14px;
+    }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .container {
+        padding: 20px;
+    }
+}

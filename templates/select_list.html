@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Unit</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>Select Unit ({{ day }})</h2>
+    
+        {% for unit in units %}
+            <a href="{{ url_for('attendance_list', unit=unit) }}">
+                <button>{{ unit }}</button>
+            </a>
+        {% endfor %}
+    
+        <br><br>
+        <a href="{{ url_for('dashboard') }}">Back</a>
+    </div>
+</body>
+</html>
