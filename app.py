@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -28,49 +29,56 @@ class Attendance(db.Model):
     day = db.Column(db.String(20))
     unit = db.Column(db.String(100))
     attending = db.Column(db.String(10))
-    timestamp = db.Column(db.DateTime, default=datetime.now)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
     user = db.relationship('User', backref='attendances')
 
 with app.app_context():
     db.create_all()
 
-# School timetable units per day
+# ----------------- TIMEZONE HELPER -----------------
+
+def get_kenya_time():
+    return datetime.now(ZoneInfo("Africa/Nairobi"))
+
+# ----------------- TIMETABLE -----------------
+
 units_by_day = {
     "Monday": [
         "E GOVERNMENT AND INSTITUTIONAL CHANGE",
         "SERVICE ORIENTED COMPUTING",
         "SOCIAL NETWORKING COMPUTING",
-        "SOFTWARE ENGINEERING ",
-        "SPECIAL TOPICS IN CONTEMPORARY ICTS "
+        "SOFTWARE ENGINEERING",
+        "SPECIAL TOPICS IN CONTEMPORARY ICTS"
     ],
     "Tuesday": [
         "USER INTERFACE PROGRAMMING",
-        "SPECIAL TOPICS IN CONTEMPORARY ICTS ",
+        "SPECIAL TOPICS IN CONTEMPORARY ICTS",
         "SERVICE ORIENTED COMPUTING",
-        "ICT GROUP PROJECT "
+        "ICT GROUP PROJECT"
     ],
     "Wednesday": [
         "E GOVERNMENT AND INSTITUTIONAL CHANGE",
         "USER INTERFACE PROGRAMMING",
-        "NETWORK SYSTEMS INTERROGATION AND MAINTANANCE ",
+        "NETWORK SYSTEMS INTERROGATION AND MAINTANANCE",
         "SERVICE ORIENTED COMPUTING",
         "SOCIAL NETWORKING COMPUTING",
         "ICT GROUP PROJECT"
     ],
     "Thursday": [
         "NETWORK SYSTEMS INTERROGATION AND MAINTANANCE",
-        "ICT GROUP PROJECT ",
+        "ICT GROUP PROJECT",
         "USER INTERFACE PROGRAMMING",
         "SOCIAL NETWORKING COMPUTING"
     ],
     "Friday": [
-        "SOFTWARE ENGINEERING ",
-        "NETWORK SYSTEMS INTERROGATION AND MAINTANANCE ",
-        "E GOVERNMENT AND INSTITUTIONAL CHANGE ",
-        "SERVICE ORIENTED COMPUTING "
+        "SOFTWARE ENGINEERING",
+        "NETWORK SYSTEMS INTERROGATION AND MAINTANANCE",
+        "E GOVERNMENT AND INSTITUTIONAL CHANGE",
+        "SERVICE ORIENTED COMPUTING"
     ]
 }
+
 # ----------------- ROUTES -----------------
 
 @app.route('/')
@@ -90,7 +98,7 @@ def signup():
         username = request.form['username']
         if User.query.filter_by(username=username).first():
             return "Username already exists! Please choose another."
-        
+
         user = User(
             first_name=request.form['first_name'],
             middle_name=request.form['middle_name'],
@@ -105,6 +113,7 @@ def signup():
         db.session.add(user)
         db.session.commit()
         return redirect(url_for('login'))
+
     return render_template('signup.html')
 
 # ---------------- LOGIN -----------------
@@ -117,6 +126,7 @@ def login():
             session['username'] = user.username
             return redirect(url_for('dashboard'))
         return "Invalid credentials!"
+
     return render_template('login.html')
 
 # ---------------- DASHBOARD -----------------
@@ -124,11 +134,13 @@ def login():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    day = datetime.now().strftime("%A")  # Monday, Tuesday etc
-    date = datetime.now().strftime("%d-%m-%Y")
+
+    now = get_kenya_time()
+    day = now.strftime("%A")
+    date = now.strftime("%d-%m-%Y")
+
     user = User.query.get(session['user_id'])
     return render_template('dashboard.html', day=day, date=date, user=user)
-
 
 # ---------------- FILL ATTENDANCE -----------------
 @app.route('/fill_attendance', methods=['GET', 'POST'])
@@ -136,8 +148,9 @@ def fill_attendance():
     if 'user_id' not in session:
         return redirect(url_for('login'))
 
-    day = datetime.now().strftime("%A")
-    date = datetime.now().strftime("%d-%m-%Y")
+    now = get_kenya_time()
+    day = now.strftime("%A")
+    date = now.strftime("%d-%m-%Y")
 
     units = units_by_day.get(day, [])
 
@@ -145,42 +158,61 @@ def fill_attendance():
         unit = request.form.get("unit")
         attending = request.form.get("attending")
 
-        # Check if attendance already exists for this user/day/unit
-        att = Attendance.query.filter_by(user_id=session['user_id'], day=day, unit=unit).first()
+        att = Attendance.query.filter_by(
+            user_id=session['user_id'],
+            day=day,
+            unit=unit
+        ).first()
+
         if att:
-            att.attending = attending  # Update existing
+            att.attending = attending
         else:
-            att = Attendance(user_id=session['user_id'], day=day, unit=unit, attending=attending)
+            att = Attendance(
+                user_id=session['user_id'],
+                day=day,
+                unit=unit,
+                attending=attending
+            )
             db.session.add(att)
+
         db.session.commit()
         return redirect(url_for('dashboard'))
 
     return render_template('fill_attendance.html', day=day, units=units)
 
-#---------------- UNIT SELECTION -----------------------    
+# ---------------- UNIT SELECTION -----------------
 @app.route('/select_unit')
 def select_unit():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
-    day = datetime.now().strftime("%A")
-    units = units_by_day.get(day, [])  # Only today's units
 
+    now = get_kenya_time()
+    day = now.strftime("%A")
+
+    units = units_by_day.get(day, [])
     return render_template('select_list.html', day=day, units=units)
 
 # ---------------- ATTENDANCE LIST -----------------
-
-@app.route('/attendance_list', methods=['GET'])
+@app.route('/attendance_list')
 def attendance_list():
     unit = request.args.get('unit')
-    day = datetime.now().strftime("%A")
+
+    now = get_kenya_time()
+    day = now.strftime("%A")
+
     units = units_by_day.get(day, [])
+
     if not unit:
         records = []
     else:
-        records = Attendance.query.filter_by(unit=unit).all()
+        records = Attendance.query.filter_by(day=day, unit=unit).all()
 
-    return render_template('attendance_list.html', records=records, units=units, selected_unit=unit)
+    return render_template(
+        'attendance_list.html',
+        records=records,
+        units=units,
+        selected_unit=unit
+    )
 
 # ---------------- LOGOUT -----------------
 @app.route('/logout')
@@ -188,5 +220,6 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+# ---------------- RUN -----------------
 if __name__ == '__main__':
-    app.run
+    app.run()
